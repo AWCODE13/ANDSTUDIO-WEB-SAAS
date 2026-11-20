@@ -20,6 +20,7 @@ class TenantController extends Controller
         $query = $request->get('q');
         $plan = $request->get('plan');
         $status = $request->get('status');
+        $aktif = $request->get('aktif');
 
         $tenants = Tenant::withCount(['packages', 'bookings', 'users'])
             ->when($query, function ($q) use ($query) {
@@ -31,6 +32,8 @@ class TenantController extends Controller
             })
             ->when($plan, fn ($q) => $q->where('subscription_plan', $plan))
             ->when($status, fn ($q) => $q->where('subscription_status', $status))
+            // Filter status aktivasi studio: "1" aktif, "0" dinonaktifkan
+            ->when($aktif !== null && $aktif !== '', fn ($q) => $q->where('is_active', $aktif === '1'))
             ->orderByDesc('created_at')
             ->paginate(12)
             ->withQueryString();
@@ -48,7 +51,7 @@ class TenantController extends Controller
             'active'   => Tenant::where('subscription_status', 'active')->count(),
         ];
 
-        return view('superadmin.tenants.index', compact('tenants', 'revenues', 'stats', 'query', 'plan', 'status'));
+        return view('superadmin.tenants.index', compact('tenants', 'revenues', 'stats', 'query', 'plan', 'status', 'aktif'));
     }
 
     /**
@@ -216,7 +219,8 @@ class TenantController extends Controller
     }
 
     /**
-     * B. Hapus studio (soft delete).
+     * B. Nonaktifkan studio (data tetap ada, disembunyikan dari frontend
+     *    publik dan akses login tenant-nya diblokir).
      */
     public function destroy(int $id)
     {
@@ -224,14 +228,34 @@ class TenantController extends Controller
 
         // Superadmin tidak punya tenant_id, jadi tidak mungkin terhapus lewat sini
         if ($tenant->users()->where('role', 'superadmin')->exists()) {
-            return back()->with('error', 'Tidak dapat menghapus studio ini.');
+            return back()->with('error', 'Tidak dapat menonaktifkan studio ini.');
         }
 
-        $tenant->delete();
+        $tenant->update(['is_active' => false]);
 
         return redirect()
             ->route('superadmin.tenants.index')
-            ->with('success', 'Studio ' . $tenant->name . ' telah dinonaktifkan.');
+            ->with('success', 'Studio ' . $tenant->name . ' dinonaktifkan. Data tetap tersimpan dan bisa diaktifkan kembali.');
+    }
+
+    /**
+     * B. Aktifkan kembali studio yang dinonaktifkan.
+     */
+    public function activate(int $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+
+        $data = ['is_active' => true];
+
+        // Jika status langganan canceled, aktifkan ulang agar bisa langsung pakai dashboard
+        if ($tenant->isCanceled()) {
+            $data['subscription_status'] = 'active';
+        }
+
+        $tenant->update($data);
+
+        return back()
+            ->with('success', 'Studio ' . $tenant->name . ' berhasil diaktifkan kembali.');
     }
 
     /**

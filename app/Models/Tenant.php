@@ -18,6 +18,7 @@ class Tenant extends Model
         'next_payment_at' => 'datetime',
         'plan_expires_at' => 'datetime',
         'is_partner'      => 'boolean',
+        'is_active'       => 'boolean',
         'whatsapp_notification_enabled' => 'boolean',
     ];
 
@@ -183,6 +184,15 @@ class Tenant extends Model
         }
 
         return ['max_packages' => 3, 'max_bookings_per_month' => 50, 'max_staff' => 1];
+    }
+
+    /**
+     * Studio dinonaktifkan oleh superadmin: tetap tersimpan, disembunyikan
+     * dari frontend publik, dan akses login tenant-nya diblokir.
+     */
+    public function isDeactivated(): bool
+    {
+        return $this->is_active === false;
     }
 
     /**

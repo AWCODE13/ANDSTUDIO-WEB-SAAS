@@ -18,6 +18,11 @@
                     <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase {{ str_replace('bg-', 'bg-', $label['color']) }}">
                         {{ $label['text'] }}
                     </span>
+                    @if (! $tenant->is_active)
+                        <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-rose-500/10 text-rose-400">
+                            Dinonaktifkan
+                        </span>
+                    @endif
                 </div>
                 <p class="text-base-content/60 text-xs sm:text-sm mt-0.5 truncate">
                     /{{ $tenant->slug }} · {{ $tenant->email }}
@@ -228,20 +233,34 @@
                 @endif
             </div>
 
-            <!-- Danger Zone -->
+            <!-- Danger Zone / Aktivasi -->
             <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-6">
-                <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider mb-2">Zona Berbahaya</h2>
-                <p class="text-xs text-base-content/60 mb-4">
-                    Nonaktifkan studio ini. Data booking tetap tersimpan dan bisa dipulihkan.
-                </p>
-                <form method="POST" action="{{ route('superadmin.tenants.destroy', $tenant->id) }}"
-                      onsubmit="return confirm('Yakin ingin menonaktifkan studio {{ $tenant->name }}?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="w-full btn btn-sm btn-error border-0 shadow-none">
-                        Nonaktifkan Studio
-                    </button>
-                </form>
+                @if ($tenant->is_active)
+                    <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider mb-2">Zona Berbahaya</h2>
+                    <p class="text-xs text-base-content/60 mb-4">
+                        Nonaktifkan studio ini. Studio akan disembunyikan dari frontend publik dan akses login tenant diblokir, namun data booking tetap tersimpan dan bisa diaktifkan kembali.
+                    </p>
+                    <form method="POST" action="{{ route('superadmin.tenants.destroy', $tenant->id) }}"
+                          onsubmit="return confirm('Yakin ingin menonaktifkan studio {{ $tenant->name }}? Studio akan disembunyikan dari frontend publik dan akses login diblokir.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="w-full btn btn-sm btn-error border-0 shadow-none">
+                            Nonaktifkan Studio
+                        </button>
+                    </form>
+                @else
+                    <h2 class="text-sm font-bold text-success uppercase tracking-wider mb-2">Aktivasi Studio</h2>
+                    <p class="text-xs text-base-content/60 mb-4">
+                        Studio ini sedang <strong>nonaktif</strong>: disembunyikan dari frontend publik dan akses login tenant diblokir. Aktifkan kembali untuk memulihkan akses.
+                    </p>
+                    <form method="POST" action="{{ route('superadmin.tenants.activate', $tenant->id) }}"
+                          onsubmit="return confirm('Aktifkan kembali studio {{ $tenant->name }}?');">
+                        @csrf
+                        <button type="submit" class="w-full btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-none">
+                            Aktifkan Lagi Studio
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     </div>

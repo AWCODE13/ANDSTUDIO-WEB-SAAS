@@ -55,10 +55,15 @@
             <option value="past_due" @selected($status === 'past_due')>Tagihan Terlambat</option>
             <option value="canceled" @selected($status === 'canceled')>Nonaktif</option>
         </select>
+        <select name="aktif" class="px-3 py-2 sm:py-2.5 min-h-[40px] bg-base-100 border border-base-300 rounded-xl text-xs sm:text-sm font-medium text-base-content focus:border-primary outline-none">
+            <option value="">Semua Studio</option>
+            <option value="1" @selected($aktif === '1')>Aktif</option>
+            <option value="0" @selected($aktif === '0')>Dinonaktifkan</option>
+        </select>
         <button type="submit" class="px-3 py-2 sm:py-2.5 min-h-[40px] bg-primary hover:bg-primary/90 text-white text-xs sm:text-sm font-semibold rounded-xl transition">
             Filter
         </button>
-        @if ($query || $plan || $status)
+        @if ($query || $plan || $status || ($aktif !== null && $aktif !== ''))
             <a href="{{ route('superadmin.tenants.index') }}" class="px-3 py-2 sm:py-2.5 min-h-[40px] bg-base-200 hover:bg-base-300 text-base-content/70 text-xs sm:text-sm font-semibold rounded-xl transition">
                 Reset
             </a>
@@ -83,7 +88,7 @@
                 <tbody class="text-base-content/70">
                     @forelse ($tenants as $tenant)
                         @php $label = $tenant->subscriptionLabel(); @endphp
-                        <tr class="transition">
+                        <tr class="transition {{ ! $tenant->is_active ? 'opacity-60' : '' }}">
                             <td class="border-b border-base-300">
                                 <div class="flex items-center gap-3">
                                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary flex items-center justify-center text-base-content font-bold text-xs shrink-0">
@@ -93,6 +98,11 @@
                                         <span class="block font-bold text-base-content truncate">{{ $tenant->name }}</span>
                                         <span class="block text-xs text-base-content/60 truncate">{{ $tenant->email }}</span>
                                     </div>
+                                    @if (! $tenant->is_active)
+                                        <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-rose-500/10 text-rose-400 shrink-0">
+                                            Dinonaktifkan
+                                        </span>
+                                    @endif
                                 </div>
                             </td>
                             <td class="border-b border-base-300">
@@ -120,6 +130,24 @@
                                        class="btn btn-xs border-0 bg-base-300 text-base-content/70 hover:bg-base-300">
                                         ↗ Web
                                     </a>
+                                    @if ($tenant->is_active)
+                                        <form method="POST" action="{{ route('superadmin.tenants.destroy', $tenant->id) }}"
+                                              onsubmit="return confirm('Nonaktifkan studio {{ $tenant->name }}? Studio disembunyikan dari frontend dan akses login diblokir.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-xs border-0 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20">
+                                                Nonaktifkan
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form method="POST" action="{{ route('superadmin.tenants.activate', $tenant->id) }}"
+                                              onsubmit="return confirm('Aktifkan kembali studio {{ $tenant->name }}?');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-xs border-0 bg-emerald-500/10 text-success hover:bg-emerald-500/20">
+                                                Aktifkan
+                                            </button>
+                                        </form>
+                                    @endif
                                     <a href="{{ route('superadmin.tenants.show', $tenant->id) }}"
                                        class="btn btn-xs btn-primary border-0 shadow-none">
                                         Kelola
@@ -149,7 +177,7 @@
     <div class="lg:hidden space-y-3">
         @forelse ($tenants as $tenant)
             @php $label = $tenant->subscriptionLabel(); @endphp
-            <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5 space-y-3">
+            <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5 space-y-3 {{ ! $tenant->is_active ? 'opacity-60' : '' }}">
                 <!-- Header: Nama & Logo -->
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
@@ -159,6 +187,11 @@
                         <span class="block font-bold text-base-content truncate">{{ $tenant->name }}</span>
                         <span class="block text-xs text-base-content/60 truncate">{{ $tenant->email }}</span>
                     </div>
+                    @if (! $tenant->is_active)
+                        <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-rose-500/10 text-rose-400 shrink-0">
+                            Dinonaktifkan
+                        </span>
+                    @endif
                 </div>
 
                 <!-- Plan & Status Badges -->
@@ -199,6 +232,28 @@
                        class="flex-1 px-3 py-2 min-h-[40px] bg-base-200 hover:bg-base-300 text-base-content/70 text-xs font-semibold rounded-xl transition flex items-center justify-center">
                         ↗ Web
                     </a>
+                    @if ($tenant->is_active)
+                        <form method="POST" action="{{ route('superadmin.tenants.destroy', $tenant->id) }}"
+                              onsubmit="return confirm('Nonaktifkan studio {{ $tenant->name }}?');"
+                              class="flex-1">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    class="w-full px-3 py-2 min-h-[40px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold rounded-xl transition flex items-center justify-center">
+                                Nonaktifkan
+                            </button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('superadmin.tenants.activate', $tenant->id) }}"
+                              onsubmit="return confirm('Aktifkan kembali studio {{ $tenant->name }}?');"
+                              class="flex-1">
+                            @csrf
+                            <button type="submit"
+                                    class="w-full px-3 py-2 min-h-[40px] bg-emerald-500/10 hover:bg-emerald-500/20 text-success text-xs font-semibold rounded-xl transition flex items-center justify-center">
+                                Aktifkan
+                            </button>
+                        </form>
+                    @endif
                     <a href="{{ route('superadmin.tenants.show', $tenant->id) }}"
                        class="flex-1 px-3 py-2 min-h-[40px] bg-primary hover:bg-primary/90 text-white text-xs font-semibold rounded-xl transition flex items-center justify-center">
                         Kelola

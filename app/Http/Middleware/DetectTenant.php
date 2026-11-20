@@ -65,6 +65,13 @@ class DetectTenant
                 ->with('error', "Studio {$subdomain} tidak ditemukan.");
         }
 
+        // Studio dinonaktifkan oleh superadmin → sembunyikan dari publik
+        if ($tenant->isDeactivated()) {
+            return redirect()
+                ->to($this->fallbackUrl)
+                ->with('error', "Studio {$tenant->name} sedang dinonaktifkan.");
+        }
+
         // Simpan tenant ke request attribute untuk diakses di controller
         $request->attributes->set('tenant', $tenant);
         $request->attributes->set('tenant_subdomain', $subdomain);

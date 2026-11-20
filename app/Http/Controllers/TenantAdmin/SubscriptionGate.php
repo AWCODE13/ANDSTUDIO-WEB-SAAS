@@ -30,6 +30,15 @@ class SubscriptionGate
             return $next($request);
         }
 
+        // Studio dinonaktifkan superadmin: paksa keluar walau sesi masih hidup
+        if ($tenant->isDeactivated()) {
+            Auth::logout();
+
+            return redirect()
+                ->route('login')
+                ->with('error', 'Studio Anda sedang dinonaktifkan oleh pengelola platform. Silakan hubungi superadmin.');
+        }
+
         // Partner: bebas
         if ($tenant->isPartner()) {
             return $next($request);

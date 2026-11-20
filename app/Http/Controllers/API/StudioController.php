@@ -20,9 +20,10 @@ class StudioController extends Controller
         // otomatis ikut tanpa harus hardcode daftar kolom.
         // Pakai withoutGlobalScopes agar daftar studio Publik tidak tertangkap
         // global scope BelongsToTenant (tenant admin lihat hanya paketnya sendiri).
-        $tenants = Tenant::whereHas('packages', function ($q) {
-            $q->withoutGlobalScopes()->where('is_active', true);
-        })->get();
+        $tenants = Tenant::where('is_active', true)
+            ->whereHas('packages', function ($q) {
+                $q->withoutGlobalScopes()->where('is_active', true);
+            })->get();
 
         // Rata-rata rating dari ulasan pelanggan (1 query untuk semua studio).
         $aggregates = StudioReview::aggregateByTenant();
@@ -65,7 +66,14 @@ class StudioController extends Controller
         }
 
         if ($slug) {
-            return Tenant::where('slug', $slug)->firstOrFail();
+            $tenant = Tenant::where('slug', $slug)->firstOrFail();
+
+            // Studio dinonaktifkan oleh superadmin → tidak tampil di frontend publik
+            if ($tenant->isDeactivated()) {
+                abort(404, 'Studio tidak ditemukan.');
+            }
+
+            return $tenant;
         }
 
         abort(404, 'Studio tidak ditemukan.');
@@ -134,6 +142,7 @@ class StudioController extends Controller
     {
         // Studio yang memiliki paket aktif (partner platform)
         $studioCount = Tenant::withoutGlobalScopes()
+            ->where('is_active', true)
             ->whereHas('packages', function ($q) {
                 $q->withoutGlobalScopes()->where('is_active', true);
             })
@@ -149,6 +158,7 @@ class StudioController extends Controller
 
         // Uptime dalam bulan (dari tenant terlama yang masih aktif)
         $oldestTenant = Tenant::withoutGlobalScopes()
+            ->where('is_active', true)
             ->orderBy('created_at', 'asc')
             ->first();
         $uptimeMonths = $oldestTenant

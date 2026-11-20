@@ -154,6 +154,7 @@ Route::prefix('superadmin')->middleware(['auth', EnsureSuperAdmin::class])->grou
     Route::put('/tenants/{id}/subscription', [SuperadminTenantController::class, 'updateSubscription'])->name('superadmin.tenants.subscription');
     Route::post('/tenants/{id}/extend-trial', [SuperadminTenantController::class, 'extendTrial'])->name('superadmin.tenants.extend-trial');
     Route::delete('/tenants/{id}', [SuperadminTenantController::class, 'destroy'])->name('superadmin.tenants.destroy');
+    Route::post('/tenants/{id}/activate', [SuperadminTenantController::class, 'activate'])->name('superadmin.tenants.activate');
 
     // D. Ulasan pelanggan (moderasi)
     Route::get('/ulasan', [SuperadminReviewController::class, 'index'])->name('superadmin.reviews.index');

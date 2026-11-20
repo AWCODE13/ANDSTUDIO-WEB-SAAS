@@ -10,7 +10,7 @@
     <script>
         (function() {
             try {
-                var savedTheme = localStorage.getItem('tenant-theme');
+                var savedTheme = localStorage.getItem('theme') || localStorage.getItem('tenant-theme');
                 var isDark = savedTheme ? (savedTheme === 'dark') : (document.documentElement.getAttribute('data-theme') !== 'studio-light');
                 document.documentElement.setAttribute('data-theme', isDark ? 'studio-dark' : 'studio-light');
                 if (isDark) {
@@ -313,7 +313,7 @@
             const nextTheme = isDark ? 'studio-light' : 'studio-dark';
             html.setAttribute('data-theme', nextTheme);
             html.classList.toggle('dark', nextTheme === 'studio-dark');
-            localStorage.setItem('tenant-theme', nextTheme === 'studio-dark' ? 'dark' : 'light');
+            localStorage.setItem('theme', nextTheme === 'studio-dark' ? 'dark' : 'light');
             updateThemeIcon(!isDark);
             try {
                 await fetch('{{ route('tenant.settings.update') }}', {

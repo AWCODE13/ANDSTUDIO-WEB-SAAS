@@ -49,6 +49,18 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            // Blokir tenant yang dinonaktifkan oleh superadmin
+            $user = Auth::user();
+            if ($user->tenant_id && $user->tenant && $user->tenant->isDeactivated()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'Studio Anda sedang dinonaktifkan oleh pengelola platform. Silakan hubungi superadmin untuk mengaktifkannya kembali.',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
 
             // Hapus rate limit setelah login berhasil

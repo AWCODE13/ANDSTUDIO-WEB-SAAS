@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="{{ ($theme ?? 'dark') === 'light' ? 'studio-light' : 'studio-dark' }}">
+<html lang="id" data-theme="{{ ($theme ?? 'dark') === 'light' ? 'studio-light' : 'studio-dark' }}" class="{{ ($theme ?? 'dark') === 'light' ? '' : 'dark' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -168,16 +168,18 @@
             const isDark = html.getAttribute('data-theme') === 'studio-dark';
             const nextTheme = isDark ? 'studio-light' : 'studio-dark';
             html.setAttribute('data-theme', nextTheme);
+            html.classList.toggle('dark', nextTheme === 'studio-dark');
             localStorage.setItem('theme', nextTheme === 'studio-light' ? 'light' : 'dark');
             updateThemeIcon(!isDark);
         }
 
         // Inisialisasi saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme');
+            const savedTheme = localStorage.getItem('theme') || localStorage.getItem('tenant-theme');
             if (savedTheme) {
                 const isLight = savedTheme === 'light';
                 document.documentElement.setAttribute('data-theme', isLight ? 'studio-light' : 'studio-dark');
+                document.documentElement.classList.toggle('dark', !isLight);
                 updateThemeIcon(isLight);
             }
 

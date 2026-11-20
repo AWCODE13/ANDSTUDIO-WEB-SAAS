@@ -1,11 +1,26 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ ($theme ?? 'dark') === 'light' ? 'studio-light' : 'studio-dark' }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ ($theme ?? 'dark') === 'light' ? 'studio-light' : 'studio-dark' }}" class="{{ ($theme ?? 'dark') === 'light' ? '' : 'dark' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Superadmin') - ANDstudio Platform</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Theme persistence script - runs before body to prevent flash -->
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('theme') || localStorage.getItem('tenant-theme');
+                var isDark = savedTheme ? (savedTheme === 'dark') : (document.documentElement.getAttribute('data-theme') !== 'studio-light');
+                document.documentElement.setAttribute('data-theme', isDark ? 'studio-dark' : 'studio-light');
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
 <body class="bg-base-200 text-base-content antialiased flex h-screen overflow-hidden min-h-screen">
@@ -238,6 +253,8 @@
             const isDark = html.getAttribute('data-theme') === 'studio-dark';
             const nextTheme = isDark ? 'studio-light' : 'studio-dark';
             html.setAttribute('data-theme', nextTheme);
+            html.classList.toggle('dark', nextTheme === 'studio-dark');
+            localStorage.setItem('theme', nextTheme === 'studio-dark' ? 'dark' : 'light');
             updateThemeIcons();
             try {
                 await fetch('{{ route('superadmin.settings.update') }}', {
