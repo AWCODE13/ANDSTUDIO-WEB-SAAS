@@ -18,14 +18,21 @@ Studio foto dapat mendaftar trial 14 hari, membuat paket foto, membuka jadwal re
 
 ## 🖼️ Screenshot / Tampilan
 
-> Silakan tambahkan gambar screenshot di folder `docs/assets/` dan ganti path di bawah ini.
+### Landing Page
 
-| Halaman | Preview |
-|---------|---------|
-| Landing Page | `docs/assets/landing.png` |
-| Katalog Studio | `docs/assets/katalog.png` |
-| Halaman Pembayaran | `docs/assets/bayar.png` |
-| Dashboard Admin Studio | `docs/assets/dashboard.png` |
+![Landing Page](docs/assets/landing.png)
+
+### Katalog Studio
+
+![Katalog Studio](docs/assets/katalog.png)
+
+### Halaman Pembayaran
+
+![Halaman Pembayaran](docs/assets/bayar.png)
+
+### Dashboard Admin Studio
+
+![Dashboard Admin Studio](docs/assets/dashboard.png)
 
 ---
 
