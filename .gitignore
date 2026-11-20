@@ -23,3 +23,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Tooling / agent config (tidak untuk portofolio)
+/AGENTS.md
+/frontend/AGENTS.md
+/docs/agents/
+/.codegraph/
